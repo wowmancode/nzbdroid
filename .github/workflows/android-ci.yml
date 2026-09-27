@@ -51,9 +51,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
-
+      # Single Gradle invocation: there are no unit tests yet, so a separate test
+      # step would just compile the same code a second time.
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 
