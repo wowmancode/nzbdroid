@@ -25,13 +25,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install required SDK platform/build-tools
+      # GitHub's ubuntu-latest runners already ship with an Android SDK at
+      # $ANDROID_HOME (including cmdline-tools), so there's no separate "set up
+      # Android SDK" action needed here — that's what android-actions/setup-android
+      # was for, but it tries to install Google's long-removed legacy 'tools'
+      # package and fails every time. We just use the SDK that's already there.
+      - name: Accept SDK licenses and install platform 35 / build-tools
         run: |
           yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle (adds caching automatically)
         uses: gradle/actions/setup-gradle@v4
