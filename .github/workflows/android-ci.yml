@@ -30,10 +30,20 @@ jobs:
       # Android SDK" action needed here — that's what android-actions/setup-android
       # was for, but it tries to install Google's long-removed legacy 'tools'
       # package and fails every time. We just use the SDK that's already there.
+      # sdkmanager lives inside the preinstalled SDK but isn't on PATH, so locate it
+      # (newest cmdline-tools version wins) instead of assuming it's callable directly.
       - name: Accept SDK licenses and install platform 35 / build-tools
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDK_ROOT="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          echo "Android SDK at: $SDK_ROOT"
+          SDKMANAGER="$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found under $SDK_ROOT/cmdline-tools"; ls -la "$SDK_ROOT" || true
+            exit 1
+          fi
+          echo "Using $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle (adds caching automatically)
         uses: gradle/actions/setup-gradle@v4
